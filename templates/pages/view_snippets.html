@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
     <!-- Begin page content -->
-<main role="main" class="mt-3 flex-shrink-0">
     <div class="container">
         <div class="row">
             <div class="col text-center">
@@ -26,29 +25,53 @@
                         <th scope="col">ID</th>
                         <th scope="col">Название</th>
                         <th scope="col">Дата создания</th>
+                        <th scope="col">Пользователь</th>
+                        <th scope="col">Настройки приватности</th>
+                        {% if request.user.is_authenticated %}
+                            <th scope="col">Инструментарий</th>
+                        {% endif %}
                     </tr>
                     </thead>
                     <tbody>
-
-                    <tr>
-                        <td scope="row">1</td>
-                        <td><a href="/snippets/1">Пример сниппета</a></td>
-                        <td>23.05.2019 11:32</td>
-                    </tr>
-
-                    <tr>
-                        <td scope="row">2</td>
-                        <td><a href="/snippets/2">И ещё один пример</a></td>
-                        <td>23.05.2019 11:34</td>
-                    </tr>
-
+                    {% if request.user.is_authenticated %}
+                        {% for snippet in mine_public %}
+                        <tr>
+                            <td scope="row">{{ snippet.id }}</td>
+                            <td><a href="{% url 'snippet-detail' snippet.id %}">{{ snippet.name }}</a></td>
+                            <td>{{ snippet.creation_date }}</td>
+                            <td>{{ snippet.user }}</td>
+                            {% if snippet.privacy == "Частный" %}
+                                <td id="privacy-setting">{{ snippet.privacy }}</td>
+                            {% else %}
+                                <td>{{ snippet.privacy }}</td>
+                            {% endif %}
+                            <td>
+                            {% if snippet.user == request.user %}
+                                <a href="{% url 'snippet-delete' snippet.id %}">
+                                    <i class="fa-sharp fa-solid fa-trash"></i>
+                                <a href="{% url 'snippet-change' snippet.id %}">
+                                    <i class="fa-sharp fa-solid fa-gear"></i>
+                            {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        {% for snippet in public %}
+                        <tr>
+                            <td scope="row">{{ snippet.id }}</td>
+                            <td><a href="{% url 'snippet-detail' snippet.id %}">{{ snippet.name }}</a></td>
+                            <td>{{ snippet.creation_date }}</td>
+                            <td>{{ snippet.user }}</td>
+                            <td>{{ snippet.privacy }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% endif %}
                     </tbody>
                 </table>
                 <div align="right">
-                    <i style="color: gray;">Всего сниппетов: 2</i>
+                    <i style="color: gray;">Всего сниппетов: {{count}}</i>
                 </div>
             </div>
         </div>
     </div>
-</main>
 {% endblock %}

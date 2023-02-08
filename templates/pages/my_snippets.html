@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block content %}
+    <!-- Begin page content -->
+    <div class="container">
+        <div class="row">
+            <div class="col text-center">
+                <h1>{{ pagename }}</h1>
+                <hr>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <table class="table table-striped">
+                    <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Название</th>
+                        <th scope="col">Дата создания</th>
+                        <th scope="col">Пользователь</th>
+                        <th scope="col">Приватность</th>
+                        <th scope="col">Инструментарий</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for snippet in my_snippets %}
+                    <tr>
+                        <td scope="row">{{ snippet.id }}</td>
+                        <td><a href="{% url 'snippet-detail' snippet.id %}">{{ snippet.name }}</a></td>
+                        <td>{{ snippet.creation_date }}</td>
+                        <td>{{ snippet.user }}</td>
+                        {% if snippet.privacy == "Частный" %}
+                            <td id="privacy-setting">{{ snippet.privacy }}</td>
+                        {% else %}
+                            <td>{{ snippet.privacy }}</td>
+                        {% endif %}
+                        <td>
+                            <a href="{% url 'snippet-delete' snippet.id %}">
+                                <i class="fa-sharp fa-solid fa-trash"></i>
+                            <a href="{% url 'snippet-change' snippet.id %}">
+                                <i class="fa-sharp fa-solid fa-gear"></i>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <div align="right">
+                    <i style="color: gray;">Всего сниппетов: {{count}}</i>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

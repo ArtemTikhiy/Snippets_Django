@@ -4,7 +4,7 @@
     <div class="container">
         <div class="row">
             <div class="col">
-                <h1>{{ pagename }}</h1>
+                <h1>{{ pagename }} {{ snippet.id }}</h1>
                 <hr>
             </div>
         </div>
@@ -15,11 +15,10 @@
                     <table>
                         {{ form }}
                     </table>
-                    <button type="submit">Сохранить</button>
+                    <button type="submit">Внести изменения</button>
                 </form>
 
             </div>
         </div>
     </div>
 {% endblock %}
-

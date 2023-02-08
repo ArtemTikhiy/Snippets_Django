@@ -2,7 +2,7 @@
 <header>
     <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="/">
+            <a class="navbar-brand" href="{% url 'home' %}">
                 <img src="{% static 'images/logo.png' %}" width="32" height="32" alt="">
                 PythonBin
             </a>
@@ -12,18 +12,42 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarCollapse">
                 <ul class="navbar-nav mr-auto">
+                    {% if request.user.is_authenticated %}
                     <li class="form-inline">
-                        <a class="btn btn-outline-secondary" href="/snippets/add">
+                        <a class="btn btn-outline-secondary" href="{% url 'snippet-add' %}">
                             Добавить сниппет
                         </a>
                     </li>
+                    {% endif %}
                     <li class="form-inline">
-                        <a class="btn btn-outline-info" href="/snippets/list">
+                        <a class="btn btn-outline-info" href="{% url 'snippet-list' %}">
                             Посмотреть сниппеты
                         </a>
                     </li>
+                    {% if request.user.is_authenticated %}
+                    <li class="form-inline">
+                        <a class="btn btn-outline-info" href="{% url 'snippet-my-snippets' %}">
+                            Мои сниппеты
+                        </a>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
+            {% if request.user.is_authenticated %}
+                <span style="color: white">Welcome, {{request.user.username }}</span>
+                <a href="{% url 'logout' %}">Logout</a>
+            {% else %}
+            <form method="post" action="{% url 'login' %}">{% csrf_token %}
+                <input name="username"  type="text" placeholder="username">
+                <input name="password"  type="password" placeholder="password">
+                <button type="submit">login</button>
+            </form>
+            <li class="form-inline">
+                <a class="btn btn-outline-secondary" href="{% url 'create-user' %}">
+                    Создание пользователя
+                </a>
+            </li>
+            {% endif %}
         </div>
     </nav>
 </header>
