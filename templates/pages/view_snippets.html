@@ -40,10 +40,10 @@
                             <td><a href="{% url 'snippet-detail' snippet.id %}">{{ snippet.name }}</a></td>
                             <td>{{ snippet.creation_date }}</td>
                             <td>{{ snippet.user }}</td>
-                            {% if snippet.privacy == "Частный" %}
-                                <td id="privacy-setting">{{ snippet.privacy }}</td>
+                            {% if snippet.privacy == True %}
+                                <td id="privacy-setting">{{ snippet.privacy|yesno:"Частный, Публичный" }}</td>
                             {% else %}
-                                <td>{{ snippet.privacy }}</td>
+                                <td>{{ snippet.privacy|yesno:"Частный, Публичный" }}</td>
                             {% endif %}
                             <td>
                             {% if snippet.user == request.user %}
@@ -62,7 +62,7 @@
                             <td><a href="{% url 'snippet-detail' snippet.id %}">{{ snippet.name }}</a></td>
                             <td>{{ snippet.creation_date }}</td>
                             <td>{{ snippet.user }}</td>
-                            <td>{{ snippet.privacy }}</td>
+                            <td>{{ snippet.privacy|yesno:"Частный, Публичный" }}</td>
                         </tr>
                         {% endfor %}
                     {% endif %}

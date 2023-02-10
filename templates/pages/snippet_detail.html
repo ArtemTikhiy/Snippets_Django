@@ -27,7 +27,7 @@
                                Дата создания:<input type="text" value="{{ snippet.creation_date }}" class="form-control">
                            </div>
                            <div class="col col-4">
-                               Настройка приватности:<input type="text" value="{{ snippet.privacy }}" class="form-control">
+                               Настройка приватности:<input type="text" value="{{ snippet.privacy|yesno:"Частный, Публичный" }}" class="form-control">
                            </div>
                        </div>
                        <hr>

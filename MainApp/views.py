@@ -29,13 +29,13 @@ def add_snippet_page(request):
             return redirect("snippet-list")
 
 def snippets_page(request):
-    # Я добавил возможность загерестрированному пользователю через "Посмотреть снипеты"
+    # Я добавил возможность зарегестрированному пользователю через "Посмотреть снипеты"
     # увидеть в том числе и "Частные" сниппеты, но только если они созданы именно им
     try:
         mine = Snippet.objects.filter(user=request.user)
     except TypeError:
         mine = None
-    public = Snippet.objects.filter(privacy='Публичный')
+    public = Snippet.objects.filter(privacy=False)
     if mine:
         mine_public = mine | public
     else:

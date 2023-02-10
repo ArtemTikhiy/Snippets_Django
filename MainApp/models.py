@@ -8,8 +8,8 @@ LANG_CHOICE = (
 )
 
 PRIVACY_CHOICE = (
-    ('Публичный', 'Публичный'),
-    ('Частный', 'Частный')
+    (False, 'Публичный'),
+    (True, 'Частный')
 )
 
 
@@ -20,4 +20,4 @@ class Snippet(models.Model):
     creation_date = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(to=User, on_delete=models.CASCADE,
                              blank=True, null=True)
-    privacy = models.CharField(max_length=10, choices=PRIVACY_CHOICE)
+    privacy = models.BooleanField(choices=PRIVACY_CHOICE)
