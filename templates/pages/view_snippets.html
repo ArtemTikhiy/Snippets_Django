@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load my_tags %}
 {% block content %}
     <!-- Begin page content -->
     <div class="container">
@@ -19,13 +20,42 @@
 
         <div class="row">
             <div class="col">
+                <form  method="get" action="">
+                    <select name="lang">
+                        <option {% if lang == 'py' %}selected {% endif %} value="py">python</option>
+                        <option {% if lang == 'js' %}selected {% endif %} value="js">JavaScript</option>
+                        <option {% if lang == 'cpp' %}selected {% endif %}value="cpp">C++</option>
+                    </select>
+                    <button type="submit">Применить</button>
+                <a href="{% url 'snippet-list' %}">Сброс</a>
+                </form>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
                 <table class="table table-striped">
                     <thead class="thead-dark">
                     <tr>
                         <th scope="col">ID</th>
-                        <th scope="col">Название</th>
+                        <th scope="col">
+                            {% if sort == 'name' %}
+                                <a href="?sort=-name">Название</a>
+                            {% elif sort == '-name' %}
+                                <a href="?sort=name">Название</a>
+                            {% else %}
+                                <a href="?sort=name">Название</a>
+                            {% endif %}
+
+                            {% if sort == 'name' %}
+                                <i class="fa-solid fa-caret-down"></i>
+                            {% elif sort == '-name' %}
+                                <i class="fa-solid fa-caret-up"></i>
+                            {% endif %}
+                        </th>
                         <th scope="col">Дата создания</th>
                         <th scope="col">Пользователь</th>
+                        <th scope="col">Язык</th>
                         <th scope="col">Настройки приватности</th>
                         {% if request.user.is_authenticated %}
                             <th scope="col">Инструментарий</th>
@@ -39,7 +69,8 @@
                             <td scope="row">{{ snippet.id }}</td>
                             <td><a href="{% url 'snippet-detail' snippet.id %}">{{ snippet.name }}</a></td>
                             <td>{{ snippet.creation_date }}</td>
-                            <td>{{ snippet.user }}</td>
+                            <td>{{ snippet.user.username|is_empty:"Аноним" }}</td>
+                            <td>{{ snippet.lang }}</td>
                             {% if snippet.privacy == True %}
                                 <td id="privacy-setting">{{ snippet.privacy|yesno:"Частный, Публичный" }}</td>
                             {% else %}
@@ -61,7 +92,8 @@
                             <td scope="row">{{ snippet.id }}</td>
                             <td><a href="{% url 'snippet-detail' snippet.id %}">{{ snippet.name }}</a></td>
                             <td>{{ snippet.creation_date }}</td>
-                            <td>{{ snippet.user }}</td>
+                            <td>{{ snippet.user.username|is_empty:"Аноним" }}</td>
+                            <td>{{ snippet.lang }}</td>
                             <td>{{ snippet.privacy|yesno:"Частный, Публичный" }}</td>
                         </tr>
                         {% endfor %}

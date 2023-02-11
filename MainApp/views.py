@@ -5,8 +5,8 @@ from django.http import Http404
 from django.shortcuts import render, redirect
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
-from MainApp.models import Snippet
-from MainApp.forms import SnippetForm, UserRegistrationForm
+from MainApp.models import Snippet, Comment
+from MainApp.forms import SnippetForm, UserRegistrationForm, CommentForm
 
 
 def index_page(request):
@@ -29,8 +29,9 @@ def add_snippet_page(request):
             return redirect("snippet-list")
 
 def snippets_page(request):
-    # Я добавил возможность зарегестрированному пользователю через "Посмотреть снипеты"
-    # увидеть в том числе и "Частные" сниппеты, но только если они созданы именно им
+    lang = request.GET.get("lang")
+    sort = request.GET.get('sort')
+    # snippets = Snippet.objects.all()
     try:
         mine = Snippet.objects.filter(user=request.user)
     except TypeError:
@@ -40,11 +41,16 @@ def snippets_page(request):
         mine_public = mine | public
     else:
         mine_public = public
+    if lang:
+        mine_public = mine_public.filter(lang=lang)
+    if sort:
+        mine_public = mine_public.order_by(sort)
     count = Snippet.objects.count()
     context = {'pagename': 'Просмотр сниппетов',
                'public': public,
                'count': count,
-               'mine_public': mine_public
+               'mine_public': mine_public,
+               'sort': sort
                }
     return render(request, 'pages/view_snippets.html', context)
 
@@ -60,14 +66,14 @@ def snippets_my_snippets(request):
     return render(request, 'pages/my_snippets.html', context)
 
 
-@login_required
+@login_required()
 def snippet_delete(request, snippet_id):
     snippet = Snippet.objects.get(pk=snippet_id)
     snippet.delete()
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
-@login_required
+@login_required()
 def snippet_change(request, snippet_id):
     snippet = Snippet.objects.get(pk=snippet_id)
     if request.method == "GET":   #пользователю нужна страница с формой
@@ -88,8 +94,11 @@ def snippet_change(request, snippet_id):
 
 def snippet_detail(request, snippet_id):
     snippet = Snippet.objects.get(pk=snippet_id)
+    comment_form = CommentForm()
     context = {'pagename': 'Страница сниппета',
-               'snippet': snippet}
+               'snippet': snippet,
+               'comment_form': comment_form,
+               }
     return render(request, 'pages/snippet_detail.html', context)
 
 
@@ -127,3 +136,18 @@ def create_user(request):
             user = authenticate(username=username, password=raw_password)
             login(request, user)
             return redirect('home')
+
+
+@login_required()
+def add_comment(request):
+    if request.method == "POST":
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            snippet_id = request.POST['snippet_id']
+            snippet = Snippet.objects.get(pk=snippet_id)
+            comment = form.save(commit=False)
+            comment.author = request.user
+            comment.snippet = snippet
+            comment.save()
+            return redirect(request.META.get('HTTP_REFERER', '/'))
+
