@@ -20,8 +20,8 @@ class SnippetForm(ModelForm):
 class CommentForm(ModelForm):
    class Meta:
        model = Comment
-       fields = ['text']
-       labels = {"text": ''}
+       fields = ['text', 'image']
+       labels = {"text": '', 'image': ''}
        widgets = {
            'text': Textarea(attrs={'placeholder': 'Текст комментария'})
        }

@@ -4,14 +4,13 @@
     <div class="container">
         <div class="row">
             <div class="col text-center">
-                <h1>{{ pagename }}</h1>
+                <h1>Сниппеты, созданные пользователем «{{chosen_user}}»</h1>
                 <hr>
             </div>
         </div>
 
         <div class="row">
             <div class="col">
-                <span>Фильтр по языку программирования</span>
                 <form  method="get" action="">
                     <select name="lang">
                         <option {% if lang == 'py' %} selected {% endif %} value="py">python</option>
@@ -19,11 +18,11 @@
                         <option {% if lang == 'cpp' %} selected {% endif %}value="cpp">C++</option>
                     </select>
                     <button class="btn btn-outline-info" type="submit">Применить</button>
-                <a class="btn btn-outline-info" href="{% url 'snippet-my-snippets' %}">Сброс</a>
+                <a class="btn btn-outline-info" href="{% url 'user-page' chosen_user %}">Сброс</a>
                 </form>
             </div>
         </div>
-        <hr>
+
         <div class="row">
             <div class="col">
                 <table class="table table-striped">
@@ -67,12 +66,12 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for snippet in my_snippets %}
+                    {% for snippet in snippets %}
                     <tr>
                         <td scope="row">{{ snippet.id }}</td>
                         <td><a href="{% url 'snippet-detail' snippet.id %}">{{ snippet.name }}</a></td>
                         <td>{{ snippet.creation_date }}</td>
-                        <td>{{ snippet.user.username }}</td>
+                        <td>{{ snippet.user }}</td>
                         <td>{{ snippet.lang }}</td>
                         {% if snippet.privacy == True %}
                             <td id="privacy-setting">{{ snippet.privacy|yesno:"Частный, Публичный" }}</td>

@@ -10,27 +10,46 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row" id="center">
             <div class="col">
                 <p>На данной страницы будут отображаться все созданные сниппеты.</p>
-                <p>Пока тут просто пример, но скоро заменим реальными сниппетами из БД!</p>
+                <hr>
+                <p>
+                    <a class="btn btn-outline-info" href="{% url 'users-rating' %}">
+                        Рейтинг пользователей
+                    </a>
+                </p>
                 <hr>
             </div>
         </div>
 
         <div class="row">
             <div class="col">
-                <form  method="get" action="">
+                <span>Фильтр по языку программирования</span>
+                <form method="get" action="">
                     <select name="lang">
-                        <option {% if lang == 'py' %}selected {% endif %} value="py">python</option>
-                        <option {% if lang == 'js' %}selected {% endif %} value="js">JavaScript</option>
-                        <option {% if lang == 'cpp' %}selected {% endif %}value="cpp">C++</option>
+                        <option {% if lang == 'py' %} selected {% endif %} value="py">python</option>
+                        <option {% if lang == 'js' %} selected {% endif %} value="js">JavaScript</option>
+                        <option {% if lang == 'cpp' %} selected {% endif %}value="cpp">C++</option>
                     </select>
-                    <button type="submit">Применить</button>
-                <a href="{% url 'snippet-list' %}">Сброс</a>
+                    <button class="btn btn-outline-info" type="submit">Применить</button>
+                <a class="btn btn-outline-info" href="{% url 'snippet-list' %}">Сброс</a>
+                </form>
+            </div>
+            <div class="justify-content-end">
+                <span>Фильтр по имени пользователя</span>
+                <form method="get" action="">
+                    <select name="user">
+                    {% for user in users_with_one_snippet %}
+                        <option value={{user.username}}>{{user.username}}</option>
+                    {% endfor %}
+                    </select>
+                    <button class="btn btn-outline-info" type="submit">Применить</button>
+                <a class="btn btn-outline-info" href="{% url 'snippet-list' %}">Сброс</a>
                 </form>
             </div>
         </div>
+        <hr>
 
         <div class="row">
             <div class="col">
@@ -55,7 +74,21 @@
                         </th>
                         <th scope="col">Дата создания</th>
                         <th scope="col">Пользователь</th>
-                        <th scope="col">Язык</th>
+                        <th scope="col">
+                            {% if sort == 'lang' %}
+                                <a href="?sort=-lang">Язык</a>
+                            {% elif sort == '-name' %}
+                                <a href="?sort=lang">Язык</a>
+                            {% else %}
+                                <a href="?sort=lang">Язык</a>
+                            {% endif %}
+
+                            {% if sort == 'lang' %}
+                                <i class="fa-solid fa-caret-down"></i>
+                            {% elif sort == '-lang' %}
+                                <i class="fa-solid fa-caret-up"></i>
+                            {% endif %}
+                        </th>
                         <th scope="col">Настройки приватности</th>
                         {% if request.user.is_authenticated %}
                             <th scope="col">Инструментарий</th>
@@ -69,7 +102,11 @@
                             <td scope="row">{{ snippet.id }}</td>
                             <td><a href="{% url 'snippet-detail' snippet.id %}">{{ snippet.name }}</a></td>
                             <td>{{ snippet.creation_date }}</td>
-                            <td>{{ snippet.user.username|is_empty:"Аноним" }}</td>
+                            <td>
+                                <a href="{% url 'user-page' snippet.user.username %}">
+                                    {{ snippet.user.username|is_empty:"Аноним" }}
+                                </a>
+                            </td>
                             <td>{{ snippet.lang }}</td>
                             {% if snippet.privacy == True %}
                                 <td id="privacy-setting">{{ snippet.privacy|yesno:"Частный, Публичный" }}</td>
@@ -80,14 +117,16 @@
                             {% if snippet.user == request.user %}
                                 <a href="{% url 'snippet-delete' snippet.id %}">
                                     <i class="fa-sharp fa-solid fa-trash"></i>
+                                </a>
                                 <a href="{% url 'snippet-change' snippet.id %}">
                                     <i class="fa-sharp fa-solid fa-gear"></i>
+                                </a>
                             {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
                     {% else %}
-                        {% for snippet in public %}
+                        {% for snippet in mine_public %}
                         <tr>
                             <td scope="row">{{ snippet.id }}</td>
                             <td><a href="{% url 'snippet-detail' snippet.id %}">{{ snippet.name }}</a></td>

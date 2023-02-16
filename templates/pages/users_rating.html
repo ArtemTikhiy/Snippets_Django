@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load my_tags %}
+{% block content %}
+    <!-- Begin page content -->
+    <div class="container">
+        <div class="row">
+            <div class="col text-center">
+                <h1>
+                    Рейтинг пользователей
+                    {% if sort %}
+                        <a class="btn btn-outline-info" href="{% url 'users-rating' %}">Сброс фильтров</a>
+                    {% endif %}
+                </h1>
+                <hr>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <table class="table table-striped">
+                    <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">ID пользователя</th>
+                        <th scope="col">
+                            {% if sort == 'username' %}
+                                <a href="?sort=-username">Имя пользователя</a>
+                            {% elif sort == '-username' %}
+                                <a href="?sort=username">Имя пользователя</a>
+                            {% else %}
+                                <a href="?sort=username">Имя пользователя</a>
+                            {% endif %}
+
+                            {% if sort == 'username' %}
+                                <i class="fa-solid fa-caret-down"></i>
+                            {% elif sort == '-username' %}
+                                <i class="fa-solid fa-caret-up"></i>
+                            {% endif %}
+                        </th>
+                        <th scope="col">
+                            {% if sort == 'num_snippets' %}
+                                <a href="?sort=-num_snippets">Всего сниппетов</a>
+                            {% elif sort == '-num_snippets' %}
+                                <a href="?sort=num_snippets">Всего сниппетов</a>
+                            {% else %}
+                                <a href="?sort=-num_snippets">Всего сниппетов</a>
+                            {% endif %}
+
+                            {% if sort == 'num_snippets' %}
+                                <i class="fa-solid fa-caret-down"></i>
+                            {% elif sort == '-num_snippets' %}
+                                <i class="fa-solid fa-caret-up"></i>
+                            {% endif %}
+                        </th>
+                        <th scope="col">
+                            {% if sort == 'num_comments' %}
+                                <a href="?sort=-num_comments">Комментариев под сниппетами</a>
+                            {% elif sort == '-num_comments' %}
+                                <a href="?sort=num_comments">Комментариев под сниппетами</a>
+                            {% else %}
+                                <a href="?sort=-num_comments">Комментариев под сниппетами</a>
+                            {% endif %}
+
+                            {% if sort == 'num_comments' %}
+                                <i class="fa-solid fa-caret-down"></i>
+                            {% elif sort == '-num_comments' %}
+                                <i class="fa-solid fa-caret-up"></i>
+                            {% endif %}
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td scope="row">{{ user.id }}</td>
+                            <td>
+                                <a href="{% url 'user-page' user.username %}">
+                                    {{ user.username}}
+                                </a>
+                            </td>
+                            <td>{{ user.snippet_set.count }}</td>
+                            <td>{{ user.comment_set.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div align="right">
+                    <i style="color: gray;">Всего сниппетов: {{count_snippets}}</i>
+                </div>
+                <div align="right">
+                    <i style="color: gray;">Всего комментариев: {{count_comments}}</i>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,6 +1,8 @@
 from typing import Union
 
 from django.contrib.auth import login, authenticate
+from django.contrib.auth.models import User
+from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import render, redirect
 from django.contrib import auth
@@ -10,8 +12,21 @@ from MainApp.forms import SnippetForm, UserRegistrationForm, CommentForm
 
 
 def index_page(request):
-    context = {'pagename': 'PythonBin'}
-    return render(request, 'pages/index.html', context)
+    snippet_id = request.GET.get("id")
+    if snippet_id:
+        try:
+            snippet = Snippet.objects.get(pk=snippet_id)
+            comment_form = CommentForm()
+            context = {'pagename': 'Страница сниппета',
+                       'snippet': snippet,
+                       'comment_form': comment_form,
+                       }
+            return render(request, 'pages/snippet_detail.html', context)
+        except:
+            return render(request, 'pages/error_search.html')
+    else:
+        context = {'pagename': 'PythonBin'}
+        return render(request, 'pages/index.html', context)
 
 
 @login_required
@@ -31,7 +46,16 @@ def add_snippet_page(request):
 def snippets_page(request):
     lang = request.GET.get("lang")
     sort = request.GET.get('sort')
-    # snippets = Snippet.objects.all()
+    user_sort = request.GET.get('user')
+    all_users = User.objects.all()
+    all_id = []
+    for user in all_users:
+        all_id.append(user.id)
+    user_with_one_id = []
+    for char in all_id:
+        if Snippet.objects.filter(user_id=char).count() >= 1:
+            user_with_one_id.append(char)
+    users_with_one_snippet = User.objects.filter(pk__in = user_with_one_id)
     try:
         mine = Snippet.objects.filter(user=request.user)
     except TypeError:
@@ -45,23 +69,36 @@ def snippets_page(request):
         mine_public = mine_public.filter(lang=lang)
     if sort:
         mine_public = mine_public.order_by(sort)
+    if user_sort:
+        chosen_id = User.objects.get(username=user_sort)
+        mine_public = mine_public.filter(user_id=chosen_id)
     count = Snippet.objects.count()
     context = {'pagename': 'Просмотр сниппетов',
-               'public': public,
                'count': count,
                'mine_public': mine_public,
-               'sort': sort
+               'sort': sort,
+               'lang': lang,
+               'users_with_one_snippet': users_with_one_snippet,
+               'user_sort': user_sort
                }
     return render(request, 'pages/view_snippets.html', context)
 
 
 @login_required
 def snippets_my_snippets(request):
+    lang = request.GET.get("lang")
+    sort = request.GET.get('sort')
     my_snippets = Snippet.objects.filter(user=request.user)
-    count = len(my_snippets)
+    count = Snippet.objects.filter(user=request.user).count()
+    if lang:
+        my_snippets = my_snippets.filter(lang=lang)
+    if sort:
+        my_snippets = my_snippets.order_by(sort)
     context = {'pagename': 'Мои сниппеты',
                'my_snippets': my_snippets,
-               'count': count
+               'count': count,
+               'sort': sort,
+               'lang': lang
                }
     return render(request, 'pages/my_snippets.html', context)
 
@@ -70,7 +107,7 @@ def snippets_my_snippets(request):
 def snippet_delete(request, snippet_id):
     snippet = Snippet.objects.get(pk=snippet_id)
     snippet.delete()
-    return redirect(request.META.get('HTTP_REFERER', '/'))
+    return redirect("snippet-list")
 
 
 @login_required()
@@ -94,10 +131,14 @@ def snippet_change(request, snippet_id):
 
 def snippet_detail(request, snippet_id):
     snippet = Snippet.objects.get(pk=snippet_id)
+    user = request.user.username
+    voted = snippet.voted
     comment_form = CommentForm()
     context = {'pagename': 'Страница сниппета',
                'snippet': snippet,
                'comment_form': comment_form,
+               'user': user,
+               'voted': voted
                }
     return render(request, 'pages/snippet_detail.html', context)
 
@@ -141,7 +182,7 @@ def create_user(request):
 @login_required()
 def add_comment(request):
     if request.method == "POST":
-        form = CommentForm(request.POST)
+        form = CommentForm(request.POST, request.FILES)
         if form.is_valid():
             snippet_id = request.POST['snippet_id']
             snippet = Snippet.objects.get(pk=snippet_id)
@@ -150,4 +191,58 @@ def add_comment(request):
             comment.snippet = snippet
             comment.save()
             return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+def user_page(request, snippet_user):
+    lang = request.GET.get("lang")
+    sort = request.GET.get('sort')
+    chosen_user = snippet_user
+    user_object = User.objects.get(username=chosen_user)
+    user_id = user_object.id
+    snippets = Snippet.objects.filter(user_id=user_id).filter(privacy=False)
+    if lang:
+        snippets = snippets.filter(lang=lang)
+    if sort:
+        snippets = snippets.order_by(sort)
+    count = Snippet.objects.filter(user_id=user_id).filter(privacy=False).count()
+    context = {'chosen_user': chosen_user,
+               'snippets': snippets,
+               'sort': sort,
+               'lang': lang,
+               'count': count
+               }
+    return render(request, 'pages/user_page.html', context)
+
+
+def users_rating(request):
+    sort = request.GET.get('sort')
+    users = User.objects.annotate(num_snippets=Count('snippet')).annotate(num_comments=Count('comment')).order_by('-num_snippets')
+    count_snippets = Snippet.objects.all().count()
+    count_comments = Comment.objects.all().count()
+    if sort:
+        users = users.order_by(sort)
+    context = {'users': users,
+               'count_snippets': count_snippets,
+               'count_comments': count_comments,
+               'sort': sort
+               }
+    return render(request, 'pages/users_rating.html', context)
+
+@login_required()
+def snippet_thumbs_up(request, snippet_id):
+    user = request.user.username
+    snippet = Snippet.objects.get(pk=snippet_id)
+    snippet.rating += 1
+    snippet.voted += user
+    snippet.save()
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+@login_required()
+def snippet_thumbs_down(request, snippet_id):
+    user = request.user.username
+    snippet = Snippet.objects.get(pk=snippet_id)
+    snippet.rating -= 1
+    snippet.voted += user
+    snippet.save()
+    return redirect(request.META.get('HTTP_REFERER', '/'))
 
